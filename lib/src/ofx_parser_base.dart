@@ -1,27 +1,24 @@
-import 'package:xml/xml.dart';
-
-import 'models/transaction.dart';
+import 'dart:convert';
+import 'package:xml2json/xml2json.dart';
+import 'models/stmttrn.dart';
 
 class OfxParser {
-  static List<Transaction> getTransactions(String ofx) {
-    final xmlData = XmlDocument.parse(ofx);
+  final String ofxString;
+  late Map<String, dynamic> mappedOfx;
 
-    List<Transaction> transactions = [];
-    final elements = xmlData.findAllElements('STMTTRN');
+  OfxParser(this.ofxString) {
+    final xmlParser = Xml2Json();
+    xmlParser.parse(ofxString);
+    final jsonString = xmlParser.toParker();
+    mappedOfx = jsonDecode(jsonString);
+  }
 
-    for (var element in elements.toList()) {
-      var dtposted = element.findElements('DTPOSTED').single.text;
-      var datetime = dtposted.substring(0, 8);
+  List<STMTTRN> getSTMTTRN() {
+    var stmttrn = mappedOfx['OFX']['BANKMSGSRSV1']['STMTTRNRS']['STMTRS']['BANKTRANLIST']['STMTTRN'];
 
-      transactions.add(
-        Transaction(
-          id: element.findElements('FITID').single.text,
-          type: element.findElements('TRNTYPE').single.text,
-          date: DateTime.parse(datetime),
-          amount: double.tryParse(element.findElements('TRNAMT').single.text),
-          description: element.findElements('MEMO').single.text,
-        ),
-      );
+    List<STMTTRN> transactions = [];
+    for (var element in stmttrn) {
+      transactions.add(STMTTRN.fromMap(element));
     }
 
     return transactions;
