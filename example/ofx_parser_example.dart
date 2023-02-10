@@ -6,9 +6,9 @@ void main() async {
   File ofxFile = File("./example/example.ofx");
   final String fileStringContent = await ofxFile.readAsString();
 
-  var transactions = OfxParser.getTransactions(fileStringContent);
+  final List<STMTTRN> stmttrn = OfxParser(fileStringContent).getSTMTTRN();
 
-  for (var element in transactions) {
-    print(element);
+  for (var element in stmttrn) {
+    print(element.toString());
   }
 }
