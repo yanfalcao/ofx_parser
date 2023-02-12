@@ -1,13 +1,37 @@
+import 'package:ofx_parser/src/exceptions/ofx_field_not_found_exception.dart';
+import 'package:ofx_parser/src/models/status.dart';
 import 'package:xml/xml.dart';
 
 import 'models/transaction.dart';
 
 class OfxParser {
-  static List<Transaction> getTransactions(String ofx) {
-    final xmlData = XmlDocument.parse(ofx);
+  late final XmlDocument ofxDocument;
 
+  OfxParser(String ofx) {
+    ofxDocument = XmlDocument.parse(ofx);
+  }
+
+  Status parseStatus(){
+    final statusElement = ofxDocument.getElement('OFX')
+        ?.getElement('SIGNONMSGSRSV1')
+        ?.getElement('SONRS')
+        ?.getElement('STATUS');
+
+    final code = statusElement?.getElement('CODE')?.text;
+    final severity = statusElement?.getElement('SEVERITY')?.text;
+
+    if(code != null && severity != null) {
+      return Status(
+          code: int.parse(code),
+          severity: severity
+      );
+    }
+    throw OfxFieldNotFoundException();
+  }
+
+  List<Transaction> parseTransactions() {
     List<Transaction> transactions = [];
-    final elements = xmlData.findAllElements('STMTTRN');
+    final elements = ofxDocument.findAllElements('STMTTRN');
 
     for (var element in elements.toList()) {
       var dtposted = element.findElements('DTPOSTED').single.text;
