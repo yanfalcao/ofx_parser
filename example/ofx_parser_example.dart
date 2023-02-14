@@ -6,11 +6,11 @@ void main() async {
   final ofxFile = File("./example/example.ofx");
   final parser = OfxParser(await ofxFile.readAsString());
 
-  var status = parser.parseStatus();
-  var transactions = parser.parseTransactions();
+  var status = parser.parseSignon();
+  // var transactions = parser.parseTransactions();
 
   print(status);
-  for (var element in transactions) {
-    print(element);
-  }
+  // for (var element in transactions) {
+  //   print(element);
+  // }
 }
