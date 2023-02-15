@@ -3,14 +3,8 @@ import 'dart:io';
 import 'package:ofx_parser/ofx_parser.dart';
 
 void main() async {
-  final ofxFile = File("./example/example.ofx");
+  final ofxFile = File("./example/example_v2.ofx");
   final parser = OfxParser(await ofxFile.readAsString());
 
-  var status = parser.parseSignon();
-  // var transactions = parser.parseTransactions();
-
-  print(status);
-  // for (var element in transactions) {
-  //   print(element);
-  // }
+  var ofx = parser.parse();
 }
