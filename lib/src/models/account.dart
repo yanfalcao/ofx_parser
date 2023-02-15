@@ -7,12 +7,16 @@ class Account {
     required this.trnuid,
     required this.type,
     this.accountId,
+    this.currency,
     this.routingNumber,
     this.branchId,
   });
 
   /// Client-assigned globally-unique ID for the transaction
   String trnuid;
+
+  /// Default currency
+  String? currency;
 
   /// The account number
   String? accountId;

@@ -6,11 +6,11 @@ class InvestmentAccount extends Account {
     required super.statusSeverity,
     required super.trnuid,
     required super.type,
-    super.branchId,
-    super.routingNumber,
+    super.currency,
     super.accountId,
     this.brokerId
   });
 
+  /// Investment broker ID
   String? brokerId;
 }

@@ -1,4 +1,5 @@
 import 'package:ofx_parser/src/exceptions/ofx_field_not_found_exception.dart';
+import 'package:ofx_parser/src/models/InvestimentAccount.dart';
 import 'package:ofx_parser/src/models/account.dart';
 import 'package:ofx_parser/src/models/account_type.dart';
 import 'package:ofx_parser/src/models/signon.dart';
@@ -21,6 +22,7 @@ class OfxParser {
 
       accounts.addAll(parseBankAccounts());
       accounts.addAll(parseCreditCardAccounts());
+      accounts.addAll(parseInvestimentAccounts());
 
       return Ofx(
         signon: signon,
@@ -92,6 +94,55 @@ class OfxParser {
     return [];
   }
 
+  List<Account> parseInvestimentAccounts() {
+    final ofxElement =  ofxDocument.getElement('OFX');
+    if(ofxElement == null){
+      throw OfxFieldNotFoundException();
+    }
+
+    final accountElements = ofxElement
+        .getElement('INVSTMTMSGSRSV1')
+        ?.findElements('INVSTMTTRNRS');
+
+    if(accountElements != null && accountElements.isNotEmpty) {
+      List<Account> accountList = [];
+      for(var element in accountElements) {
+        final trnuid = element.getElement('TRNUID')?.text;
+        final code = element.getElement('STATUS')?.getElement('CODE')?.text;
+        final severity = element.getElement('STATUS')?.getElement('SEVERITY')?.text;
+
+        if(trnuid != null && code != null && severity != null){
+          var account = InvestmentAccount(
+              trnuid: trnuid,
+              type: AccountType.Investment,
+              statusCode: code,
+              statusSeverity: severity
+          );
+
+          var acctid = element.findAllElements('ACCTID');
+          if(acctid.isNotEmpty){
+            account.accountId = acctid.elementAt(0).text;
+          }
+
+          var brokerid = element.findAllElements('BROKERID');
+          if(brokerid.isNotEmpty){
+            account.brokerId = brokerid.elementAt(0).text;
+          }
+
+          var curdef = element.findAllElements('CURDEF');
+          if(curdef.isNotEmpty){
+            account.currency = curdef.elementAt(0).text;
+          }
+
+          accountList.add(account);
+        }
+      }
+
+      return accountList;
+    }
+    return [];
+  }
+
   List<Transaction> parseTransactions() {
     List<Transaction> transactions = [];
     final elements = ofxDocument.findAllElements('STMTTRN');
@@ -139,6 +190,11 @@ class OfxParser {
         var branchid = element.findAllElements('BRANCHID');
         if(branchid.isNotEmpty){
           account.branchId = branchid.elementAt(0).text;
+        }
+
+        var curdef = element.findAllElements('CURDEF');
+        if(curdef.isNotEmpty){
+          account.currency = curdef.elementAt(0).text;
         }
 
         accountList.add(account);
